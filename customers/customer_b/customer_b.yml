@@ -1,0 +1,74 @@
+stages:
+    - WAN
+    - LAN
+    - AAD
+    - AD
+
+custo_b_WAN:
+    #when: manual
+    stage: WAN
+    image: python:3
+    tags: 
+        - mssp
+    script:
+        - apt-get update && apt-get install -y
+        - apt-get install -y python3-pip
+        - apt-get install software-properties-common -y
+        - curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
+        - apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+        - apt-get update
+        - apt-get install --reinstall -y vault
+        - setcap cap_ipc_lock= /usr/bin/vault
+        - export VAULT_ADDR=http://<vault-url>:8200/
+        - export VAULT_TOKEN="$(vault write -field=token auth/jwt/login role=shodan_api_token jwt=$CI_JOB_JWT)"
+        - export API_TOKEN="$(vault kv get -field=shodan_api_token global/shodan)"
+        - python3 -m pip install requests
+        - python3 ./lib/wan_check_shodan.py --public_ip=$custo_b_publicIPs --shodan_api_token=$API_TOKEN --customer=customer_b
+    allow_failure: true
+
+custo_b_LAN 1/2:
+    #when: manual
+    stage: LAN
+    image: python:3
+    tags:
+        - custo_a-001 # using same runner as customer A because of limited lab infrastructure
+    needs: []
+    script:
+        - apt-get update && apt-get install -y
+        - apt-get install -y python3-pip
+        - python3 -m pip install requests
+        - python3 ./lib/lan_check_outbound_ports.py --customer=customer_b
+    allow_failure: true
+
+custo_b_LAN 2/2:
+    #when: manual
+    stage: LAN
+    image: python:3
+    tags:
+        - custo_a-001 # using same runner as customer A because of limited lab infrastructure
+    needs: []
+    script:
+        - apt-get update && apt-get install -y
+        - apt-get install -y python3-pip
+        - python3 -m pip install requests
+        - python3 ./lib/lan_check_firewall_security_services.py
+    allow_failure: true
+
+custo_b_AAD:
+    #when: manual
+    stage: AAD
+    tags:
+        - custo_a-003
+    needs: []
+    script:
+        - pwsh -File ./lib/aad_check.ps1 -JWT $CI_JOB_JWT -customer customer_b
+    allow_failure: true
+
+custo_b_AD:
+    stage: AD
+    tags:
+        - custo_a-003
+    needs: []
+    script:
+        - pwsh -File ./lib/ad_check.ps1 -JWT $CI_JOB_JWT -customer customer_b -referencehostIP $custo_b_reference_host_ip
+    allow_failure: true

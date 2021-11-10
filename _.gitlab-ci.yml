@@ -1,0 +1,12 @@
+stages:
+    - WAN
+    - WANApprove
+    - LAN
+    - LANApprove
+    - AAD
+    - AADAprove
+    - AD
+    - ADApprove
+    
+include: 
+    - 'customers/**/*.yml'
