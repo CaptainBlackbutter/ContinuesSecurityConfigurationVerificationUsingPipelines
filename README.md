@@ -1,9 +1,9 @@
-# ContinuesSecurityConfigurationVerificationUsingPipelines
+# Continuous verification of security components using a CI/CD pipeline.
 This repository contains an example to use pipelines as a solution to continuously verify different configuration for a secure infrastructure.
 
 This repository is the result from a use-case-driven-paper for the postgraduate degree Advanced Cybersecurity Professional, Howest, Belgium.
 
-Use Case:
+**Use Case**
 
 A growing MSSP is often expected to monitor and maintain the complete infrastructure of a customer. They often believe that their current situation is correctly configured and is protecting them from outside threats. During the product/solution lifecycle a lot of changes happen to the configuration either by the MSSP, the customer or other (malicious) actors. To answer these possible risks and expectations a proof of concept has been defined using the automation possibilities found in pipelines. Implementation of the pipeline should use a key management solution to securely handle customer credentials.
 
